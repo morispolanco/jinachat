@@ -1,23 +1,39 @@
 import streamlit as st
-import claude2
+import requests
 
-st.title("Buscador de precios en Guatemala")
+# Definir la URL de la API para obtener precios
+API_URL = "https://api.scrapy-prices.com/prices"
 
-product = st.text_input("Ingrese el producto a buscar")
+def get_lowest_price(product_name):
+    params = {"query": product_name, "country": "GT"}  # Guatemala
+    response = requests.get(API_URL, params=params)
+    data = response.json()
 
-if product:
-    with st.spinner("Buscando precios..."):
-        search_query = f"{product} precio más bajo Guatemala"
-        search_results = claude2.search(search_query, sources=["web"])
+    if "error" in data:
+        return None
+    else:
+        prices = data.get("prices", [])
+        if prices:
+            lowest_price = min(prices, key=lambda x: x["price"])
+            return lowest_price["price"]
+        else:
+            return None
 
-    min_price = None
-    min_price_source = None
-    for result in search_results["search_results"]:
-        if result.get("price") and (not min_price or result["price"] < min_price):
-            min_price = result["price"]  
-            min_price_source = result["source"]
+def main():
+    st.title("Buscar Precio Más Bajo en Guatemala")
 
-    if min_price:
-        st.success(f"El precio más bajo encontrado de {product} es {min_price} en {min_price_source}")
-    else: 
-        st.error("No se encontraron resultados con precio para este producto")
+    # Interfaz de usuario
+    product_name = st.text_input("Ingrese el nombre del producto:")
+    if st.button("Buscar Precio"):
+        if product_name:
+            st.write(f"Buscando precios para: {product_name}")
+            lowest_price = get_lowest_price(product_name)
+            if lowest_price is not None:
+                st.success(f"Precio más bajo encontrado: {lowest_price} GTQ")
+            else:
+                st.warning("No se encontraron precios para el producto especificado.")
+        else:
+            st.warning("Ingrese un nombre de producto válido.")
+
+if __name__ == "__main__":
+    main()
