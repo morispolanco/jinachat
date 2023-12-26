@@ -1,33 +1,34 @@
 import streamlit as st
 import requests
+from bs4 import BeautifulSoup
 
-# Función para realizar la solicitud a la API
-def get_lowest_price(product_name):
-    api_url = "https://api.chat.jina.ai/v1/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer 8eu3RBqG1GHlubaZwW4k:d16d7aaf71ae7b1f7ffcb2d009ba1df36b6132d85a6870c75b0ca8737db73edb",
-    }
+def obtener_precio_mas_bajo(nombre_producto):
+    # Utilizar Google para realizar una búsqueda
+    url_busqueda_google = f"https://www.google.com/search?q={nombre_producto}+precio+site:gt"
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
 
-    payload = {
-        "messages": [{"role": "user", "content": f"Find the lowest price of {product_name}"}]
-    }
+    respuesta = requests.get(url_busqueda_google, headers=headers)
 
-    response = requests.post(api_url, headers=headers, json=payload)
-
-    if response.status_code == 200:
-        return response.json()["completions"][0]["content"]
+    if respuesta.status_code == 200:
+        # Utilizar BeautifulSoup para analizar la página y extraer información
+        soup = BeautifulSoup(respuesta.text, 'html.parser')
+        # Ajustar según la estructura HTML de los resultados de búsqueda
+        elemento_precio = soup.find("span", class_="BNeawe iBp4i AP7Wnd")
+        if elemento_precio:
+            return elemento_precio.text
+        else:
+            return "Precio no encontrado en los resultados de búsqueda"
     else:
-        return f"Error: {response.status_code}"
+        return f"Error al realizar la búsqueda: {respuesta.status_code}"
 
 # Configuración de la interfaz de Streamlit
-st.title("Lowest Price Finder")
+st.title("Buscador de Precio Más Bajo en Guatemala")
 
 # Obtener el nombre del producto del usuario
-product_name = st.text_input("Enter the product name:")
-if product_name:
-    # Obtener el precio más bajo utilizando la API
-    lowest_price = get_lowest_price(product_name)
+nombre_producto = st.text_input("Ingrese el nombre del producto:")
+if nombre_producto:
+    # Obtener el precio más bajo utilizando la búsqueda de Google
+    precio_mas_bajo = obtener_precio_mas_bajo(nombre_producto)
 
     # Mostrar el resultado en la interfaz
-    st.success(f"The lowest price of {product_name} is: {lowest_price}")
+    st.success(f"El precio más bajo de {nombre_producto} en Guatemala es: {precio_mas_bajo}")
