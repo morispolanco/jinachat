@@ -1,33 +1,31 @@
+# Importamos las bibliotecas necesarias
 import streamlit as st
 import requests
 
-# Función para realizar la solicitud a la API
-def get_lowest_price(product_name):
-    api_url = "https://api.chat.jina.ai/v1/chat/completions"
+# Definimos la función para obtener el precio más bajo del producto
+def get_lowest_price():
+    # Configuramos los encabezados y el mensaje
     headers = {
         "Content-Type": "application/json",
-        "Authorization": "Bearer 8eu3RBqG1GHlubaZwW4k:d16d7aaf71ae7b1f7ffcb2d009ba1df36b6132d85a6870c75b0ca8737db73edb",
+        "Authorization": "Bearer 8eu3RBqG1GHlubaZwW4k:d16d7aaf71ae7b1f7ffcb2d009ba1df36b6132d85a6870c75b0ca8737db73edb"
+    }
+    message = {
+        "role": "user",
+        "content": "¿Cuál es el precio más bajo de un producto en Guatemala?"
     }
 
-    payload = {
-        "messages": [{"role": "user", "content": f"Find the lowest price of {product_name}"}]
-    }
+    # Realizamos la solicitud a la API
+    response = requests.post("https://api.chat.jina.ai/v1/chat/completions", headers=headers, json={"messages": [message]})
 
-    response = requests.post(api_url, headers=headers, json=payload)
+    # Extraemos el precio del producto de la respuesta
+    price = float(response.json()["choices"][0]["message"]["content"].strip().split(":")[-1])
 
-    if response.status_code == 200:
-        return response.json()["completions"][0]["content"]
-    else:
-        return f"Error: {response.status_code}"
+    # Devolvemos el precio
+    return price
 
-# Configuración de la interfaz de Streamlit
-st.title("Lowest Price Finder")
+# Creamos la aplicación de Streamlit
+st.title("Precio de Producto en Guatemala")
 
-# Obtener el nombre del producto del usuario
-product_name = st.text_input("Enter the product name:")
-if product_name:
-    # Obtener el precio más bajo utilizando la API
-    lowest_price = get_lowest_price(product_name)
-
-    # Mostrar el resultado en la interfaz
-    st.success(f"The lowest price of {product_name} is: {lowest_price}")
+# Mostramos el precio más bajo del producto
+price = get_lowest_price()
+st.write(f"El precio más bajo de un producto en Gu
