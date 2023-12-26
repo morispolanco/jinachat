@@ -28,4 +28,7 @@ st.title("Precio de Producto en Guatemala")
 
 # Mostramos el precio más bajo del producto
 price = get_lowest_price()
-st.write(f"El precio más bajo de un producto en Gu
+st.write(f"El precio más bajo de un producto en Guatemala es de Q{price:.2f}.")
+
+if name == "main":
+get_lowest_price()
