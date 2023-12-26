@@ -1,34 +1,33 @@
-# Importamos las bibliotecas necesarias
 import streamlit as st
 import requests
 
-# Definimos la función para obtener el precio más bajo del producto
-def get_lowest_price():
-    # Configuramos los encabezados y el mensaje
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer 8eu3RBqG1GHlubaZwW4k:d16d7aaf71ae7b1f7ffcb2d009ba1df36b6132d85a6870c75b0ca8737db73edb"
+# Define the API endpoint and authorization header
+api_endpoint = "https://api.chat.jina.ai/v1/chat/completions"
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer 8eu3RBqG1GHlubaZwW4k:d16d7aaf71ae7b1f7ffcb2d009ba1df36b6132d85a6870c75b0ca8737db73edb",
+}
+
+# Create a Streamlit app
+st.title("Guatemala Product Price Finder")
+product_name = st.text_input("Enter the name of the product you want to find the price of:")
+
+# Send a request to the API with the product name
+if st.button("Find Price"):
+    data = {
+        "messages": [
+            {
+                "role": "user",
+                "content": f"What is the lowest price of {product_name} in Guatemala?",
+            }
+        ]
     }
-    message = {
-        "role": "user",
-        "content": "¿Cuál es el precio más bajo de un producto en Guatemala?"
-    }
+    response = requests.post(api_endpoint, headers=headers, json=data)
 
-    # Realizamos la solicitud a la API
-    response = requests.post("https://api.chat.jina.ai/v1/chat/completions", headers=headers, json={"messages": [message]})
-
-    # Extraemos el precio del producto de la respuesta
-    price = float(response.json()["choices"][0]["message"]["content"].strip().split(":")[-1])
-
-    # Devolvemos el precio
-    return price
-
-# Creamos la aplicación de Streamlit
-st.title("Precio de Producto en Guatemala")
-
-# Mostramos el precio más bajo del producto
-price = get_lowest_price()
-st.write(f"El precio más bajo de un producto en Guatemala es de Q{price:.2f}.")
-
-if name == "main":
-    get_lowest_price()
+    # Extract the price from the API response
+    if response.status_code == 200:
+        result = response.json()["completions"][0]["content"]
+        price = float(result.split(" ")[2])
+        st.write(f"The lowest price of {product_name} in Guatemala is {price} {result.split(' ')[3]}")
+    else:
+        st.error("Sorry, there was an error getting the price. Please try again.")
